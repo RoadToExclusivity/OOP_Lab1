@@ -1,22 +1,22 @@
 @echo off
-lab1_2.exe
+flipbyte.exe
 IF ERRORLEVEL 1 GOTO err
 
-LAB1_2.exe notANumber
+flipbyte.exe notANumber
 IF NOT ERRORLEVEL 1 GOTO err
 
-lab1_2.exe ""
+flipbyte.exe ""
 IF NOT ERRORLEVEL 1 GOTO err
 
-lab1_2.exe -123 > output.txt
+flipbyte.exe -123 > output.txt
 IF NOT ERRORLEVEL 1 GOTO err
 
-lab1_2.exe 6 > output.txt
+flipbyte.exe 6 > output.txt
 IF ERRORLEVEL 1 GOTO err
 FC /B output.txt 1.txt
 IF ERRORLEVEL 1 GOTO err
 
-lab1_2.exe 209 > output.txt
+flipbyte.exe 209 > output.txt
 IF ERRORLEVEL 1 GOTO err
 FC /B output.txt 2.txt
 IF ERRORLEVEL 1 GOTO err
