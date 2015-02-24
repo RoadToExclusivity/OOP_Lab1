@@ -14,11 +14,19 @@ int main(int argc, char *argv[]){
 		printf("Error with opening input file %s\n", argv[1]);
 		return 1;
 	}
+	
+	if (!strcmp(argv[1], argv[2]))
+	{
+		printf("Same file\n");
+		return 1;
+	}
+
 	if (!(fout = fopen(argv[2], "w")))
 	{
 		printf("Error with opening output file %s\n", argv[2]);
 		return 1;
 	}
+	
 
 	char *searchString = argv[3], *replaceString = argv[4];
 	int searchSLen = strlen(searchString), replaceSLen = strlen(replaceString), curPos = 0;
