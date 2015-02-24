@@ -5,6 +5,9 @@ IF ERRORLEVEL 1 GOTO err
 replace.exe no_such_file.txt output.txt awe ee
 IF NOT ERRORLEVEL 1 GOTO err
 
+replace.exe 1.in 1.in awe ee
+IF NOT ERRORLEVEL 1 GOTO err
+
 replace.exe 1.in output.txt ff ""
 IF ERRORLEVEL 1 GOTO err
 FC /B output.txt 1.out
