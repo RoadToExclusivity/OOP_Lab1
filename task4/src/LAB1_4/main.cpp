@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	}
 
 	FILE *f;
-	if (!(f = fopen(argv[1], "r")))
+	if (!(f = fopen(argv[1], "rb")))
 	{
 		printf("Error with opening input file\n");
 		return 1;
