@@ -1,11 +1,41 @@
 #include <stdio.h>
 #include <cstdlib>
 
-bool StringToInt(const char* s, int* num)
+bool StringToInt(const char *s, int &num)
 {
 	char* pEnd = NULL;
-	*num = strtol(s, &pEnd, 10);
+	num = strtol(s, &pEnd, 10);
 	return !((*s == '\0') || (*pEnd != '\0'));
+}
+
+bool IsUnisignedChar(const char *strNum, unsigned char &returnNumber)
+{
+	int tempNumber;
+
+	if (!StringToInt(strNum, tempNumber))
+	{
+		printf("First argument not a number\n");
+		return false;
+	}
+
+	if ((tempNumber < 0) || (tempNumber > 255))
+	{
+		printf("Number is not in [0, 255]\n");
+		return false;
+	}
+
+	returnNumber = (unsigned char)tempNumber;
+	return true;
+}
+
+unsigned char FlipByte(unsigned char n)
+{
+	unsigned char k = 0;
+	for (int i = 0; i < 8; i++, n >>= 1)
+	{
+		k = (k << 1) | (n & 1);
+	}
+	return k;
 }
 
 int main(int argc, char* argv[]){
@@ -15,28 +45,14 @@ int main(int argc, char* argv[]){
 		return 0;
 	}
 
-	unsigned char n, k = 0;
-	int temp;
-
-	if (!StringToInt(argv[1], &temp))
+	unsigned char curNumber;
+	if (!IsUnisignedChar(argv[1], curNumber))
 	{
-		printf("First argument not a number\n");
 		return 1;
 	}
 
-	if ((temp < 0) || (temp > 255))
-	{
-		printf("First argument too large\n");
-		return 1;
-	}
-
-	n = temp;
-	for (int i = 0; i < 8; i++, n >>= 1)
-	{
-		k = (k << 1) | (n & 1);
-	}
-	printf("%u\n", k);
-	//scanf("%u", &n);
+	unsigned char flippedNumber = FlipByte(curNumber);
+	printf("%u\n", flippedNumber);
 	
 	return 0;
 }
