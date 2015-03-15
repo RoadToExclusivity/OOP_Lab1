@@ -5,10 +5,13 @@ IF ERRORLEVEL 1 GOTO err
 crypt.exe crypt nofile.in nofile.out 225
 IF NOT ERRORLEVEL 1 GOTO err
 
+crypt.exe crypt 1.in 1.out 256
+IF NOT ERRORLEVEL 1 GOTO err
+
 crypt.exe crypt 1.in 1.out string
 IF NOT ERRORLEVEL 1 GOTO err
 
-crypt.exe crypt 1.in 1.out 666
+crypt.exe wrong_action 1.in 1.out 50
 IF NOT ERRORLEVEL 1 GOTO err
 
 crypt.exe crypt 1.in 1.out 44
