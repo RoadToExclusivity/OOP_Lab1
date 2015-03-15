@@ -18,7 +18,7 @@ IF ERRORLEVEL 1 GOTO err
 FC /B output.txt 2.out
 IF ERRORLEVEL 1 GOTO err
 
-bmpinfo.exe 3.bmp
+bmpinfo.exe WrongBitmap.bmp
 IF NOT ERRORLEVEL 1 GOTO err
 
 ECHO Program testing succeeded :-)
