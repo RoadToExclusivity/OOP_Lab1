@@ -10,9 +10,9 @@ IF ERRORLEVEL 1 GOTO err
 FC /B out.txt fillWithNoStartPoints_out.txt
 IF ERRORLEVEL 1 GOTO err
 
-fill.exe fill.txt out.txt
+fill.exe fillWithNoStartPoints.txt out.txt
 IF ERRORLEVEL 1 GOTO err
-FC /B out.txt fill_out.txt
+FC /B out.txt fillWithNoStartPoints_out.txt
 IF ERRORLEVEL 1 GOTO err
 
 ECHO Program testing succeeded :-)
