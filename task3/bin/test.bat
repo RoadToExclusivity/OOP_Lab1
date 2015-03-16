@@ -5,25 +5,30 @@ IF ERRORLEVEL 1 GOTO err
 invert.exe ""
 IF NOT ERRORLEVEL 1 GOTO err
 
-invert.exe no_such_file.txt
+invert.exe NO_SUCH_FILE.txt
 IF NOT ERRORLEVEL 1 GOTO err
 
-invert.exe wrong_matrix.txt
+invert.exe WrongMatrix.txt
 IF NOT ERRORLEVEL 1 GOTO err
 
-invert.exe 1.in > output.txt
+invert.exe MatrixWithFloatNumbers.txt > output.txt
 IF ERRORLEVEL 1 GOTO err
-FC /B output.txt 1.out
+FC /B output.txt MatrixWithFloatNumbers_out.txt
 IF ERRORLEVEL 1 GOTO err
 
-invert.exe 2.in > output.txt
+invert.exe MatrixWithIntegerNumbers.txt > output.txt
 IF ERRORLEVEL 1 GOTO err
-FC /B output.txt 2.out
+FC /B output.txt MatrixWithIntegerNumbers_out.txt
+IF ERRORLEVEL 1 GOTO err
+
+invert.exe MatrixWithZeroDeterminant.txt > output.txt
+IF ERRORLEVEL 1 GOTO err
+FC /B output.txt MatrixWithZeroDeterminant_out.txt
 IF ERRORLEVEL 1 GOTO err
 
 ECHO Program testing succeeded :-)
-EXIT
+EXIT /b
 
 :err
 ECHO Program testing failed :-(
-EXIT
+EXIT /b

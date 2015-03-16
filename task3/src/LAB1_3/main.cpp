@@ -1,33 +1,40 @@
 #include <stdio.h>
 #include <string.h>
 
-float Det2(float **m)
+#define MATRIX_SIZE 3
+#define MINOR_SIZE 2
+
+bool ReadMatrix(FILE *fin, float(&m)[MATRIX_SIZE][MATRIX_SIZE])
 {
-	return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+	bool isSuccess = true;
+	for (int i = 0; i < 3 && isSuccess; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			if (fscanf(fin, "%f", &m[i][j]) != 1)
+			{
+				isSuccess = false;
+				break;
+			}
+		}
+	}
+
+	return isSuccess;
 }
 
-float **RevertMatrix(float **m)
+void RevertMatrix(float(&inverseMatrix)[MATRIX_SIZE][MATRIX_SIZE], 
+				  const float(&m)[MATRIX_SIZE][MATRIX_SIZE])
 {
-	float **newMatrix = new float*[3];
-	for (int i = 0; i < 3; i++)
-	{
-		newMatrix[i] = new float[3];
-	}
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
-			newMatrix[i][j] = m[j][i];
+			inverseMatrix[i][j] = m[j][i];
 	}
-	return newMatrix;
 }
 
-float **Exclude(float **m, int x, int y)
+void Exclude(float (&minor)[MINOR_SIZE][MINOR_SIZE], 
+			 const float (&m)[MATRIX_SIZE][MATRIX_SIZE], int x, int y)
 {
-	float **newMatrix = new float*[2];
-	for (int i = 0; i < 2; i++)
-	{
-		newMatrix[i] = new float[2];
-	}
 	int kx = 0, ky = 0;
 	for (int i = 0; i < 3; i++)
 	{
@@ -42,18 +49,65 @@ float **Exclude(float **m, int x, int y)
 			{
 				continue;
 			}
-			newMatrix[kx][ky++] = m[i][j];
+			minor[kx][ky++] = m[i][j];
 		}
 		kx++;
 	}
-	return newMatrix;
 }
 
-void DeleteMatrix(float **m, int k)
+float Det2(float(&m)[MINOR_SIZE][MINOR_SIZE])
 {
-	for (int i = 0; i < k; i++)
+	return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+}
+
+float Det3(float(&m)[MATRIX_SIZE][MATRIX_SIZE])
+{
+	float firstRowCurMinor[MINOR_SIZE][MINOR_SIZE];
+	float determinant = 0;
+	int ñoef = 1;
+	for (int i = 0; i < 3; i++)
 	{
-			delete[] m[i];
+		Exclude(firstRowCurMinor, m, 0, i);
+		determinant += m[0][i] * ñoef * Det2(firstRowCurMinor);
+		ñoef = -ñoef;
+	}
+
+	return determinant;
+}
+
+void CalcAdjugateMatrix(float (&adjMatrix)[MATRIX_SIZE][MATRIX_SIZE], 
+						const float (&m)[MATRIX_SIZE][MATRIX_SIZE])
+{
+	float curMinor[MINOR_SIZE][MINOR_SIZE];
+	for (int i = 0; i < 3; i++)
+	{
+		int coef = 1;
+		if (i & 1 == 1)
+		{
+			coef = -1;
+		}
+		for (int j = 0; j < 3; j++)
+		{
+			Exclude(curMinor, m, i, j);
+			adjMatrix[i][j] = coef * Det2(curMinor);
+			coef = -coef;
+		}
+	}
+}
+
+void PrintInverseMatrix(const float(&m)[MATRIX_SIZE][MATRIX_SIZE], float det)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			printf("%.3f", m[i][j] / det);
+			if (j < 2)
+			{
+				printf(" ");
+			}
+		}
+		printf("\n");
 	}
 }
 
@@ -76,99 +130,29 @@ int main(int argc, char *argv[])
 		printf("Error with opening file %s\n", argv[1]);
 		return 1;
 	}
-	float **a = new float*[3];
-	for (int i = 0; i < 3; i++)
+
+	float a[MATRIX_SIZE][MATRIX_SIZE];
+	if (!ReadMatrix(f, a))
 	{
-		a[i] = new float[3];
-		for (int j = 0; j < 3; j++)
-		{
-			if (fscanf(f, "%f", &a[i][j]) != 1)
-			{
-				printf("Matrix doesn't have %d %d element\n", i + 1, j + 1);
-				
-				delete[] a;
-				return 1;
-			}
-		}
+		printf("Matrix is not [3 x 3]\n");
+		return 1;
 	}
 	fclose(f);
 
-	float ***startMinors = new float**[3];
-	for (int i = 0; i < 3; i++)
-	{
-		startMinors[i] = Exclude(a, 0, i);
-	}
-	float det3 = a[0][0] * Det2(startMinors[0]) - a[0][1] * Det2(startMinors[1]) + a[0][2] * Det2(startMinors[2]);
-
-	for (int i = 0; i < 3; i++)
-	{
-		DeleteMatrix(startMinors[i], 2);
-	}
-	delete[] startMinors;
-
-	if (!det3)
+	float det = Det3(a);
+	if (det == 0)
 	{
 		printf("Determinant = 0\n");
-		return 1;
+		return 0;
 	}
 	
-	float **reverseMatrix = RevertMatrix(a);
+	float reverseMatrix[MATRIX_SIZE][MATRIX_SIZE];
+	RevertMatrix(reverseMatrix, a);
 
-	float ****minors = new float***[3];
-	for (int i = 0; i < 3; i++)
-	{
-		minors[i] = new float**[3];
-		for (int j = 0; j < 3; j++)
-		{
-			minors[i][j] = Exclude(reverseMatrix, i, j);
-		}
-	}
+	float adjMatrix[MATRIX_SIZE][MATRIX_SIZE];
+	CalcAdjugateMatrix(adjMatrix, reverseMatrix);
 
-	float **conjMatrix = new float*[3];
-	for (int i = 0; i < 3; i++)
-	{
-		conjMatrix[i] = new float[3];
-		int coef = 1;
-		if (i & 1)
-		{
-			coef = -1;
-		}
-		for (int j = 0; j < 3; j++)
-		{
-			conjMatrix[i][j] = coef * Det2(minors[i][j]);
-			coef *= -1;
-		}
-	}
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			printf("%.3f", conjMatrix[i][j] / det3);
-			if (j < 2)
-			{
-				printf(" ");
-			}
-		}
-		printf("\n");
-	}
-
-	DeleteMatrix(a, 3);
-	DeleteMatrix(reverseMatrix, 3);
-	DeleteMatrix(conjMatrix, 3);
-	delete[] a;
-	delete[] conjMatrix;
-	delete[] reverseMatrix;
-
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			DeleteMatrix(minors[i][j], 2);
-			delete[] minors[i][j];
-		}
-		delete[] minors[i];
-	}
-	delete[] minors;
+	PrintInverseMatrix(adjMatrix, det);
 
 	return 0;
 }
