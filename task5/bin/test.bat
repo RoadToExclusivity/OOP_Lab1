@@ -5,20 +5,20 @@ IF ERRORLEVEL 1 GOTO err
 crypt.exe crypt nofile.in nofile.out 225
 IF NOT ERRORLEVEL 1 GOTO err
 
-crypt.exe crypt 1.in 1.out 256
+crypt.exe crypt simple_text.txt out.txt 256
 IF NOT ERRORLEVEL 1 GOTO err
 
-crypt.exe crypt 1.in 1.out string
+crypt.exe crypt simple_text.txt out.txt string
 IF NOT ERRORLEVEL 1 GOTO err
 
-crypt.exe wrong_action 1.in 1.out 50
+crypt.exe wrong_action simple_text.txt out.txt 50
 IF NOT ERRORLEVEL 1 GOTO err
 
-crypt.exe crypt 1.in 1.out 44
+crypt.exe crypt simple_text.txt out.txt 44
 IF ERRORLEVEL 1 GOTO err
-crypt.exe decrypt 1.out 1_1.out 44
+crypt.exe decrypt out.txt simple_text_out.txt 44
 IF ERRORLEVEL 1 GOTO err
-FC /B 1.in 1_1.out
+FC /B simple_text.txt simple_text_out.txt
 IF ERRORLEVEL 1 GOTO err
 
 ECHO Program testing succeeded :-)

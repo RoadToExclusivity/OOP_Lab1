@@ -2,6 +2,8 @@
 #include <cstring>
 #include <cstdlib>
 
+#define BYTE_LENGTH 8
+
 typedef unsigned char BYTE;
 
 bool StringToInt(const char *s, int &num)
@@ -11,7 +13,7 @@ bool StringToInt(const char *s, int &num)
 	return !((*s == '\0') || (*pEnd != '\0'));
 }
 
-BYTE MixByte(BYTE k, const BYTE *shiftSeq)
+BYTE MixByte(BYTE k, const BYTE(&shiftSeq)[BYTE_LENGTH])
 {
 	BYTE c = 0;
 	for (int i = 0; i < 8; i++)
@@ -21,7 +23,7 @@ BYTE MixByte(BYTE k, const BYTE *shiftSeq)
 	return c;
 }
 
-void Crypt(FILE *in, FILE *out, BYTE key, const BYTE *seq)
+void Crypt(FILE *in, FILE *out, BYTE key, const BYTE(&seq)[BYTE_LENGTH])
 {
 	BYTE curByte;
 	while (fread(&curByte, sizeof(BYTE), 1, in))
@@ -31,7 +33,7 @@ void Crypt(FILE *in, FILE *out, BYTE key, const BYTE *seq)
 	}
 }
 
-void Decrypt(FILE *in, FILE *out, BYTE key, const BYTE *seq)
+void Decrypt(FILE *in, FILE *out, BYTE key, const BYTE(&seq)[BYTE_LENGTH])
 {
 	BYTE curByte;
 	while (fread(&curByte, sizeof(BYTE), 1, in))
@@ -58,10 +60,26 @@ bool IsCorrectAction(const char *action, bool &actionType)
 	return false;
 }
 
+bool IsCorrectNumber(const char *strNum, int &key)
+{
+	int num;
+	if (!StringToInt(strNum, num))
+	{
+		return false;
+	}
+	if (num < 0 || num > 255)
+	{
+		return false;
+	}
+	
+	key = num;
+	return true;
+}
+
 void DoAction(FILE *fin, FILE *fout, bool isCrypt, BYTE key)
 {
-	BYTE shiftSeqStraight[8] = { 3, 4, 0, 5, 6, 7, 1, 2 },
-		 shiftSeqRevert[8] = { 2, 6, 7, 0, 1, 3, 4, 5 };
+	BYTE shiftSeqStraight[BYTE_LENGTH] = { 3, 4, 0, 5, 6, 7, 1, 2 },
+		 shiftSeqRevert[BYTE_LENGTH] = { 2, 6, 7, 0, 1, 3, 4, 5 };
 
 	if (isCrypt)
 	{
@@ -89,14 +107,9 @@ int main(int argc, char *argv[])
 	}
 
 	int key;
-	if (!StringToInt(argv[4], key))
+	if (!IsCorrectNumber(argv[4], key))
 	{
-		printf("Key is not a number\n");
-		return 1;
-	}
-	if (key < 0 || key > 255)
-	{
-		printf("Key is out of range 0-255\n");
+		printf("Incorrect key\n");
 		return 1;
 	}
 
