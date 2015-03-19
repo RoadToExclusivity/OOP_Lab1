@@ -18,55 +18,62 @@ int CalcCurrentPrefixFunctionValue(const string &pattern,
 	return k;
 }
 
-void CalcPrefixFunctionOnRange(const string &pattern, vector<int> &prefixFunction)
+void CalcPatternPrefixFunction(const string &curString, vector<int> &prefixFunction)
 {
 	int curPrefixFunctionValue = 0;
-	for (size_t i = 1; i < pattern.length(); i++)
+	for (size_t i = 1; i < curString.length(); i++)
 	{
-		curPrefixFunctionValue = CalcCurrentPrefixFunctionValue(pattern, prefixFunction, curPrefixFunctionValue, pattern[i]);
+		curPrefixFunctionValue = CalcCurrentPrefixFunctionValue(curString, prefixFunction, curPrefixFunctionValue, curString[i]);
 		prefixFunction[i] = curPrefixFunctionValue;
+	}
+}
+
+void ReplaceAndPrintString(ofstream &fout, const string &pattern, 
+							 const string &searchString, const string &replaceString,
+							 const string &curString, const vector<int> &patternPrefixFunction)
+{
+	int curPrefixFunctionValue = 0, writingPos = 0, 
+		searchStringLength = searchString.length(), curStringLength = curString.length();
+
+	for (int i = 0; i < curStringLength; i++)
+	{
+		curPrefixFunctionValue = CalcCurrentPrefixFunctionValue(pattern, patternPrefixFunction, curPrefixFunctionValue, curString[i]);
+		if (curPrefixFunctionValue == searchStringLength)
+		{
+			fout << replaceString;
+			writingPos = i + 1;
+			curPrefixFunctionValue = 0;
+		}
+		else
+		{
+			if (writingPos + searchStringLength <= i + 1)
+			{
+				fout << curString[writingPos++];
+			}
+		}
+	}
+
+	if (writingPos < curStringLength)
+	{
+		for (int i = writingPos; i < curStringLength; i++)
+		{
+			fout << curString[i];
+		}
 	}
 }
 
 void DoReplace(ifstream &fin, ofstream &fout, const string &searchString, 
 											  const string &replaceString)
 {
-	string pattern = searchString + '`', curLine = "", s = "";
-	int patternLength = pattern.length();
+	string pattern = searchString + '`', curLine = "";
 	
-	vector<int> prefixFunction(patternLength);
-	CalcPrefixFunctionOnRange(pattern, prefixFunction);
+	vector<int> patternPrefixFunction(pattern.length());
+	CalcPatternPrefixFunction(pattern, patternPrefixFunction);
 
-	int curPrefixFunctionValue, searchStringLength = searchString.length(), writingPos;
 	while (getline(fin, curLine))
 	{
-		curPrefixFunctionValue = prefixFunction[patternLength - 1];
-		writingPos = 0;
-		for (int i = 0; i < curLine.length(); i++)
-		{
-			curPrefixFunctionValue = CalcCurrentPrefixFunctionValue(pattern, prefixFunction, curPrefixFunctionValue, curLine[i]);
-			if (curPrefixFunctionValue == searchStringLength)
-			{
-				fout << replaceString;
-				writingPos = i + 1;
-				curPrefixFunctionValue = prefixFunction[patternLength - 1];
-			}
-			else
-			{
-				if (writingPos + searchStringLength <= i + 1)
-				{
-					fout << curLine[writingPos++];
-				}
-			}
-		}
+		ReplaceAndPrintString(fout, pattern, searchString, replaceString, curLine, patternPrefixFunction);
 
-		if (writingPos < curLine.length())
-		{
-			for (size_t i = writingPos; i < curLine.length(); i++)
-			{
-				fout << curLine[i];
-			}
-		}
 		if (!fin.eof())
 			fout << endl;
 	}
@@ -79,6 +86,16 @@ int main(int argc, char *argv[]){
 		printf("Not enough parameters\n");
 		return 0;
 	}
+	if (!strcmp(argv[1], argv[2]))
+	{
+		printf("Same file\n");
+		return 1;
+	}
+	if (strlen(argv[3]) == 0)
+	{
+		printf("Search string length = 0\n");
+		return 1;
+	}
 
 	ifstream fin(argv[1]);
 	if (!fin)
@@ -86,14 +103,6 @@ int main(int argc, char *argv[]){
 		printf("Error with opening input file %s\n", argv[1]);
 		return 1;
 	}
-	
-	if (!strcmp(argv[1], argv[2]))
-	{
-		printf("Same file\n");
-		fin.close();
-		return 1;
-	}
-
 	ofstream fout(argv[2]);
 	if (!fout)
 	{
@@ -104,9 +113,9 @@ int main(int argc, char *argv[]){
 	
 	string searchString = argv[3], replaceString = argv[4];
 	DoReplace(fin, fout, searchString, replaceString);
-
+	
 	fin.close();
 	fout.close();
-	
+
 	return 0;
 }

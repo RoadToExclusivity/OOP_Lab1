@@ -1,7 +1,0 @@
-Returns the character currently pointed by the internal file position indicator of the specified stream. The internal file position indicator is then advanced to the next character.
-
-If the stream is at the end-of-file when called, the function returns EOF and sets the end-of-file indicator for the stream (feof).
-
-If a read error occurs, the function returns EOF and sets the error indicator for the stream (ferror).
-
-fgetc and getc are equivalent, except that getc may be implemented as a macro in some libraries.
