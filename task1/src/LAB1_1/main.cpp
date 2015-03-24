@@ -18,14 +18,19 @@ int CalcCurrentPrefixFunctionValue(const string &pattern,
 	return k;
 }
 
-void CalcPatternPrefixFunction(const string &curString, vector<int> &prefixFunction)
+vector<int> CalcPatternPrefixFunction(const string &pattern)
 {
+	vector<int> prefixFunction(pattern.length());
 	int curPrefixFunctionValue = 0;
-	for (size_t i = 1; i < curString.length(); i++)
+	prefixFunction[0] = 0;
+
+	for (size_t i = 1; i < pattern.length(); i++)
 	{
-		curPrefixFunctionValue = CalcCurrentPrefixFunctionValue(curString, prefixFunction, curPrefixFunctionValue, curString[i]);
+		curPrefixFunctionValue = CalcCurrentPrefixFunctionValue(pattern, prefixFunction, curPrefixFunctionValue, pattern[i]);
 		prefixFunction[i] = curPrefixFunctionValue;
 	}
+	
+	return prefixFunction;
 }
 
 void ReplaceAndPrintString(ofstream &fout, const string &pattern, 
@@ -66,9 +71,7 @@ void DoReplace(ifstream &fin, ofstream &fout, const string &searchString,
 											  const string &replaceString)
 {
 	string pattern = searchString + '`', curLine = "";
-	
-	vector<int> patternPrefixFunction(pattern.length());
-	CalcPatternPrefixFunction(pattern, patternPrefixFunction);
+	vector<int> patternPrefixFunction = CalcPatternPrefixFunction(pattern);
 
 	while (getline(fin, curLine))
 	{
