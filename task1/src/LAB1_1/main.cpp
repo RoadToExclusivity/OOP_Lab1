@@ -6,7 +6,7 @@
 using namespace std;
 
 int CalcCurrentPrefixFunctionValue(const string &pattern, 
-								   const vector<int> &patternPrefixFunction, 
+								   const vector<size_t> &patternPrefixFunction, 
 								   int prevPrefixFunctionValue, char c)
 {
 	int k = prevPrefixFunctionValue;
@@ -18,9 +18,9 @@ int CalcCurrentPrefixFunctionValue(const string &pattern,
 	return k;
 }
 
-vector<int> CalcPatternPrefixFunction(const string &pattern)
+vector<size_t> CalcPatternPrefixFunction(const string &pattern)
 {
-	vector<int> prefixFunction(pattern.length());
+	vector<size_t> prefixFunction(pattern.length());
 	int curPrefixFunctionValue = 0;
 	prefixFunction[0] = 0;
 
@@ -35,7 +35,7 @@ vector<int> CalcPatternPrefixFunction(const string &pattern)
 
 void ReplaceAndPrintString(ofstream &fout, const string &pattern, 
 							 const string &searchString, const string &replaceString,
-							 const string &curString, const vector<int> &patternPrefixFunction)
+							 const string &curString, const vector<size_t> &patternPrefixFunction)
 {
 	int curPrefixFunctionValue = 0, writingPos = 0, 
 		searchStringLength = searchString.length(), curStringLength = curString.length();
@@ -71,7 +71,7 @@ void DoReplace(ifstream &fin, ofstream &fout, const string &searchString,
 											  const string &replaceString)
 {
 	string pattern = searchString + '`', curLine = "";
-	vector<int> patternPrefixFunction = CalcPatternPrefixFunction(pattern);
+	vector<size_t> patternPrefixFunction = CalcPatternPrefixFunction(pattern);
 
 	while (getline(fin, curLine))
 	{
@@ -116,9 +116,6 @@ int main(int argc, char *argv[]){
 	
 	string searchString = argv[3], replaceString = argv[4];
 	DoReplace(fin, fout, searchString, replaceString);
-	
-	fin.close();
-	fout.close();
 
 	return 0;
 }
