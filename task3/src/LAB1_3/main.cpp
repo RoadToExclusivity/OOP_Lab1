@@ -1,39 +1,44 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MATRIX_SIZE 3
-#define MINOR_SIZE 2
+typedef float Matrix3x3[3][3];
+typedef float Matrix2x2[2][2];
 
-bool ReadMatrix(FILE *fin, float(&m)[MATRIX_SIZE][MATRIX_SIZE])
+bool ReadMatrix(const char *s, Matrix3x3 &m)
 {
+	FILE *f;
+	if (!(f = fopen(s, "r")))
+	{
+		return false;
+	}
+
 	bool isSuccess = true;
 	for (int i = 0; i < 3 && isSuccess; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			if (fscanf(fin, "%f", &m[i][j]) != 1)
+			if (fscanf(f, "%f", &m[i][j]) != 1)
 			{
 				isSuccess = false;
 				break;
 			}
 		}
 	}
-
+	fclose(f);
+	
 	return isSuccess;
 }
 
-void RevertMatrix(float(&inverseMatrix)[MATRIX_SIZE][MATRIX_SIZE], 
-				  const float(&m)[MATRIX_SIZE][MATRIX_SIZE])
+void TransposeMatrix(const Matrix3x3 &m, Matrix3x3 &transposeMatrix)
 {
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
-			inverseMatrix[i][j] = m[j][i];
+			transposeMatrix[i][j] = m[j][i];
 	}
 }
 
-void Exclude(float (&minor)[MINOR_SIZE][MINOR_SIZE], 
-			 const float (&m)[MATRIX_SIZE][MATRIX_SIZE], int x, int y)
+void Exclude(const Matrix3x3 &m, Matrix2x2 &minor, int x, int y)
 {
 	int kx = 0, ky = 0;
 	for (int i = 0; i < 3; i++)
@@ -55,53 +60,77 @@ void Exclude(float (&minor)[MINOR_SIZE][MINOR_SIZE],
 	}
 }
 
-float Det2(float(&m)[MINOR_SIZE][MINOR_SIZE])
+float Det2(const Matrix2x2 &m)
 {
 	return m[0][0] * m[1][1] - m[0][1] * m[1][0];
 }
 
-float Det3(float(&m)[MATRIX_SIZE][MATRIX_SIZE])
+float Det3(const Matrix3x3 &m)
 {
-	float firstRowCurMinor[MINOR_SIZE][MINOR_SIZE];
+	Matrix2x2 firstRowCurMinor;
 	float determinant = 0;
-	int ñoef = 1;
+	int coef = 1;
 	for (int i = 0; i < 3; i++)
 	{
-		Exclude(firstRowCurMinor, m, 0, i);
-		determinant += m[0][i] * ñoef * Det2(firstRowCurMinor);
-		ñoef = -ñoef;
+		Exclude(m, firstRowCurMinor, 0, i);
+		determinant += m[0][i] * coef * Det2(firstRowCurMinor);
+		coef = -coef;
 	}
 
 	return determinant;
 }
 
-void CalcAdjugateMatrix(float (&adjMatrix)[MATRIX_SIZE][MATRIX_SIZE], 
-						const float (&m)[MATRIX_SIZE][MATRIX_SIZE])
+void CalcAdjugateMatrix(const Matrix3x3 &m, Matrix3x3 &adjMatrix)
 {
-	float curMinor[MINOR_SIZE][MINOR_SIZE];
+	Matrix2x2 curMinor;
 	for (int i = 0; i < 3; i++)
 	{
 		int coef = 1;
-		if (i & 1 == 1)
+		if ((i & 1) == 1)
 		{
 			coef = -1;
 		}
 		for (int j = 0; j < 3; j++)
 		{
-			Exclude(curMinor, m, i, j);
+			Exclude(m, curMinor, i, j);
 			adjMatrix[i][j] = coef * Det2(curMinor);
 			coef = -coef;
 		}
 	}
 }
 
-void PrintInverseMatrix(const float(&m)[MATRIX_SIZE][MATRIX_SIZE], float det)
+bool InverseMatrix(const Matrix3x3 &inputMatrix, Matrix3x3 &inverseMatrix)
+{
+	float det = Det3(inputMatrix);
+	if (det == 0)
+	{
+		return false;
+	}
+
+	Matrix3x3 transposeMatrix;
+	TransposeMatrix(inputMatrix, transposeMatrix);
+
+	Matrix3x3 adjMatrix;
+	CalcAdjugateMatrix(transposeMatrix, adjMatrix);
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			inverseMatrix[i][j] = adjMatrix[i][j] / det;
+		}
+	}
+
+	return true;
+}
+
+void PrintMatrix(const Matrix3x3 &m)
 {
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			printf("%.3f", m[i][j] / det);
+			printf("%.3f", m[i][j]);
 			if (j < 2)
 			{
 				printf(" ");
@@ -124,35 +153,21 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	FILE *f;
-	if (!(f = fopen(argv[1], "r")))
+	Matrix3x3 inputMatrix;
+	if (!ReadMatrix(argv[1], inputMatrix))
 	{
-		printf("Error with opening file %s\n", argv[1]);
+		printf("Error with reading matrix or matrix is not 3x3\n");
 		return 1;
 	}
 
-	float a[MATRIX_SIZE][MATRIX_SIZE];
-	if (!ReadMatrix(f, a))
-	{
-		printf("Matrix is not [3 x 3]\n");
-		return 1;
-	}
-	fclose(f);
-
-	float det = Det3(a);
-	if (det == 0)
+	Matrix3x3 inverseMatrix;
+	if (!InverseMatrix(inputMatrix, inverseMatrix))
 	{
 		printf("Determinant = 0\n");
 		return 0;
 	}
-	
-	float reverseMatrix[MATRIX_SIZE][MATRIX_SIZE];
-	RevertMatrix(reverseMatrix, a);
 
-	float adjMatrix[MATRIX_SIZE][MATRIX_SIZE];
-	CalcAdjugateMatrix(adjMatrix, reverseMatrix);
-
-	PrintInverseMatrix(adjMatrix, det);
+	PrintMatrix(inverseMatrix);
 
 	return 0;
 }
