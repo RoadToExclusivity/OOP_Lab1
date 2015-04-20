@@ -5,7 +5,7 @@
 
 using namespace std;
 
-typedef pair<int, int> pii;
+typedef pair<int, int> SymbolPosition;
 
 void Fill(int (&a)[MAX][MAX], int x, int y)
 {
@@ -32,10 +32,10 @@ void FillWithZeros(int(&a)[MAX][MAX])
 	}
 }
 
-vector<pii> ReadData(FILE *fin, int &rows, int (&a)[MAX][MAX], int (&rowSizes)[MAX])
+vector<SymbolPosition> ReadData(FILE *fin, int &rows, int(&a)[MAX][MAX], int(&rowSizes)[MAX])
 {
 	int c, n = 1, m = 1;
-	vector<pii> posList;
+	vector<SymbolPosition> posList;
 	while ((c = fgetc(fin)) != EOF)
 	{
 		if (c == '\n')
