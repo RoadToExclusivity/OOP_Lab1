@@ -1,38 +1,47 @@
 #include <cstdio>
 #include <vector>
 
-#define MAX 102
+const int MAX_SIZE = 102;
 
 using namespace std;
 
-typedef pair<int, int> SymbolPosition;
+typedef int Bitmap[MAX_SIZE][MAX_SIZE];
 
-void Fill(int (&a)[MAX][MAX], int x, int y)
+struct SymbolPosition
 {
-	int dx[4] = { -1, 1, 0, 0 };
-	int dy[4] = { 0, 0, -1, 1 };
+	int x, y;
+};
+
+struct BitmapOffset
+{
+	int dx, dy;
+};
+
+void Fill(Bitmap &a, int x, int y)
+{
+	BitmapOffset offset[4] = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
 	for (int i = 0; i < 4; i++)
 	{
-		if (a[x + dx[i]][y + dy[i]] == ' ')
+		if (a[x + offset[i].dx][y + offset[i].dy] == ' ')
 		{
-			a[x + dx[i]][y + dy[i]] = '.';
-			Fill(a, x + dx[i], y + dy[i]);
+			a[x + offset[i].dx][y + offset[i].dy] = '.';
+			Fill(a, x + offset[i].dx, y + offset[i].dy);
 		}
 	}
 }
 
-void FillWithZeros(int(&a)[MAX][MAX])
+void FillWithZeros(Bitmap &a)
 {
-	for (int i = 0; i < MAX; i++)
+	for (int i = 0; i < MAX_SIZE; i++)
 	{
-		for (int j = 0; j < MAX; j++)
+		for (int j = 0; j < MAX_SIZE; j++)
 		{
 			a[i][j] = 0;
 		}
 	}
 }
 
-vector<SymbolPosition> ReadData(FILE *fin, int &rows, int(&a)[MAX][MAX], int(&rowSizes)[MAX])
+vector<SymbolPosition> ReadData(FILE *fin, int &rows, Bitmap &a, int(&rowSizes)[MAX_SIZE])
 {
 	int c, n = 1, m = 1;
 	vector<SymbolPosition> posList;
@@ -47,7 +56,7 @@ vector<SymbolPosition> ReadData(FILE *fin, int &rows, int(&a)[MAX][MAX], int(&ro
 		}
 		if (c == 'O')
 		{
-			posList.push_back(make_pair(n, m));
+			posList.push_back({ n, m });
 		}
 		a[n][m] = c;
 		m++;
@@ -62,7 +71,7 @@ vector<SymbolPosition> ReadData(FILE *fin, int &rows, int(&a)[MAX][MAX], int(&ro
 	return posList;
 }
 
-void PrintData(FILE *fout, int rows, const int (&a)[MAX][MAX], const int (&rowSizes)[MAX])
+void PrintBitmap(FILE *fout, int rows, const Bitmap &a, const int(&rowSizes)[MAX_SIZE])
 {
 	for (int i = 1; i < rows; i++)
 	{
@@ -95,7 +104,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	int a[MAX][MAX], rowsSizes[MAX];
+	Bitmap a;
+	int rowsSizes[MAX_SIZE];
 	FillWithZeros(a);
 
 	int rows;
@@ -104,10 +114,10 @@ int main(int argc, char *argv[])
 
 	for (size_t i = 0; i < posList.size(); i++)
 	{
-		Fill(a, posList[i].first, posList[i].second);
+		Fill(a, posList[i].x, posList[i].y);
 	}
 
-	PrintData(fout, rows, a, rowsSizes);
+	PrintBitmap(fout, rows, a, rowsSizes);
 	fclose(fout);
 
 	return 0;
